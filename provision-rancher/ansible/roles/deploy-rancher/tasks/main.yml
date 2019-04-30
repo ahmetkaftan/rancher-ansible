@@ -9,7 +9,7 @@
 
 - name: Create rancher container
   docker_container:
-    name: rancher-aifora
+    name: rancher-demo
     image: rancher/rancher:{{ rancher_tag }}
     restart_policy: unless-stopped
     state: started

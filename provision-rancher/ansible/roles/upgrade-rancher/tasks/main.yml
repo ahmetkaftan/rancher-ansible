@@ -1,7 +1,7 @@
 ---
-- name: Stop rancher-aifora container
+- name: Stop rancher-demo container
   docker_container:
-    name: rancher-aifora
+    name: rancher-demo
     state: stopped
 
 - name: Delete old rancher-data container
@@ -16,16 +16,16 @@
     state: started
     recreate: yes
     volumes_from:
-    - rancher-aifora
+    - rancher-demo
 
 - name: Stop rancher-data container
   docker_container:
     name: rancher-data
     state: stopped
 
-- name: Upgrade rancher-aifora container
+- name: Upgrade rancher-demo container
   docker_container:
-    name: rancher-aifora
+    name: rancher-demo
     image: rancher/rancher:{{ rancher_tag }}
     restart_policy: unless-stopped
     state: started
