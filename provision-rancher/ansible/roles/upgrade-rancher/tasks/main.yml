@@ -1,0 +1,38 @@
+---
+- name: Stop rancher-aifora container
+  docker_container:
+    name: rancher-aifora
+    state: stopped
+
+- name: Delete old rancher-data container
+  docker_container:
+    name: rancher-data
+    state: absent
+
+- name: Create rancher-data container
+  docker_container:
+    name: rancher-data
+    image: rancher/rancher:{{ rancher_tag }}
+    state: started
+    recreate: yes
+    volumes_from:
+    - rancher-aifora
+
+- name: Stop rancher-data container
+  docker_container:
+    name: rancher-data
+    state: stopped
+
+- name: Upgrade rancher-aifora container
+  docker_container:
+    name: rancher-aifora
+    image: rancher/rancher:{{ rancher_tag }}
+    restart_policy: unless-stopped
+    state: started
+    recreate: yes
+    command: "--no-cacerts"
+    published_ports:
+    - 80:80
+    - 443:443
+    volumes_from:
+    - rancher-data

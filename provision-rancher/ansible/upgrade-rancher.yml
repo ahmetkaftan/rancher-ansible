@@ -1,0 +1,21 @@
+---
+- name: Get rancher instance ip
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: get-ip-address
+  vars_files:
+  - "{{ provision_rancher.directory.configuration }}/rancher-conf/rancher_vars"
+  - "{{ provision_rancher.directory.credentials }}/credentials"
+
+- name: Upgrade Rancher
+  gather_facts: True
+  hosts: rancher_instance_public_ip
+  become_method: sudo
+  become: yes
+  remote_user: ubuntu
+  roles:
+  - role: upgrade-rancher
+  vars_files:
+  - "{{ provision_rancher.directory.configuration }}/rancher-conf/rancher_vars"
+  - "{{ provision_rancher.directory.credentials }}/credentials"

@@ -1,0 +1,15 @@
+---
+- name: Wait until {{ cluster_name }} eks cluster is up
+  uri:
+    url: "{{ rancher_endpoint }}/clusters/{{cluster_id}}"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_cluster_status
+  retries: 120
+  delay: 10
+  until: check_cluster_status.json.state == "active"

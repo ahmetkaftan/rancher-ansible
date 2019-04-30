@@ -1,0 +1,36 @@
+---
+- name: EKS cluster settings
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: pause-for-variable-confirmation
+  vars_files:
+  - "{{ provision_clusters.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ provision_clusters.directory.credentials }}/credentials"
+
+- name: Provision EKS cluster
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: provision-cluster-eks
+  vars_files:
+  - "{{ provision_clusters.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ provision_clusters.directory.credentials }}/credentials"
+
+- name: Wait until eks cluster is up
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: wait-for-eks-cluster
+  vars_files:
+  - "{{ provision_clusters.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ provision_clusters.directory.credentials }}/credentials"
+
+- name: Get kubeconfig
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: get-kubeconfig
+  vars_files:
+  - "{{ provision_clusters.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ provision_clusters.directory.credentials }}/credentials"

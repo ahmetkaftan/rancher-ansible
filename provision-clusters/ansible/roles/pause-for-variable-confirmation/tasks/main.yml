@@ -1,0 +1,13 @@
+---
+- name: Check EKS Cluster Configuration
+  debug:
+    msg:
+    - "EKS Cluster name   : {{ cluster_name }}"
+    - "EC2 Instance type  : {{ eks_instancetype }}"
+    - "EKS Max. # of Nodes: {{ eks_maximumnodes }}"
+    - "EKS Min. # of Nodes: {{ eks_minimumnodes }}"
+    - "EKS Region         : {{ eks_region }}"
+
+- name: Confirm EKS Cluster Configuration
+  pause:
+    prompt: 'Please confirm that EKS configuration is correct. Press return to continue. Press Ctrl+c and then "a" to abort'

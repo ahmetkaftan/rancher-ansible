@@ -1,0 +1,8 @@
+#########################################################
+###             ROOT DIRECTORY CONFIG                 ###
+#########################################################
+provision_clusters:
+ directory:
+  artifacts: ../artifacts
+  configuration: ../configuration
+  credentials: ../credentials

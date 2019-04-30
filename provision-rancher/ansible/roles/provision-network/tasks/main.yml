@@ -1,0 +1,83 @@
+---
+- name: Get my public ip
+  ipify_facts:
+  register: myip
+
+- name: Create VPC
+  ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    region: "{{ aws_region }}"
+    state: present
+    aws_access_key: "{{ aws_accesskey }}"
+    aws_secret_key: "{{ aws_secretkey }}"
+  register: vpc
+
+- name: Create VPC subnets
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    az: "{{ aws_az }}"
+    cidr: "{{ vpc_subnet }}"
+    aws_access_key: "{{ aws_accesskey }}"
+    aws_secret_key: "{{ aws_secretkey }}"
+    tags:
+      Name: rancher-vpc_subnet
+  register: vpc_subnet
+
+- name: Create igw
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    aws_access_key: "{{ aws_accesskey }}"
+    aws_secret_key: "{{ aws_secretkey }}"
+    state: present
+    tags:
+      Name: rancher-igw
+  register: igw
+
+- name: Add default route to route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    aws_access_key: "{{ aws_accesskey }}"
+    aws_secret_key: "{{ aws_secretkey }}"
+    state: present
+    lookup: tag
+    tags:
+      Name: rancher-route_table
+    subnets:
+    - "{{ vpc_subnet.subnet.id }}"
+    routes:
+    - dest: 0.0.0.0/0
+      gateway_id: "{{ igw.gateway_id }}"
+  register: public_route_table
+
+- name: Create security group
+  ec2_group:
+    name: Rancher-SG
+    description: Security Group for Rancher
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    aws_access_key: "{{ aws_accesskey }}"
+    aws_secret_key: "{{ aws_secretkey }}"
+    tags:
+      Name: Rancher-SG
+    rules:
+    - proto: all
+      cidr_ip: "{{myip.ansible_facts.ipify_public_ip}}/32"
+    - proto: all
+      cidr_ip: '{{ vpc_cidr_block }}'
+    - proto: tcp
+      ports:
+      - 22
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      ports:
+      - 80
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      ports:
+      - 443
+      cidr_ip: 0.0.0.0/0
+  register: security_group

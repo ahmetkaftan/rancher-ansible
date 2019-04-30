@@ -1,0 +1,67 @@
+---
+- name: Check if {{ cluster_name }} eks cluster exists
+  uri:
+    url: "{{ rancher_endpoint }}/clusters?name={{ cluster_name }}"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_cluster
+
+- name: Set cluster id
+  set_fact:
+    cluster_id: "{{ check_cluster.json.data[0].id }}"
+  when: check_cluster.json.data | length != 0
+- debug:
+    msg: "{{ cluster_id }}"
+  when: check_cluster.json.data | length != 0
+
+- name: Create {{ cluster_name }} cluster
+  uri:
+    url: "{{ rancher_endpoint }}/clusters"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 201
+    method: POST
+    body:
+      name: "{{ cluster_name }}"
+      amazonElasticContainerServiceConfig:
+        accessKey: "{{ aws_accesskey }}"
+        secretKey: "{{ aws_secretkey }}"
+        associateWorkerNodePublicIp: "true"
+        instanceType: "{{ eks_instancetype }}"
+        kubernetesVersion: "1.12"
+        maximumNodes: "{{ eks_maximumnodes }}"
+        minimumNodes: "{{ eks_minimumnodes }}"
+        nodeVolumeSize: "{{ eks_node_volume_size }}"
+        region: "{{ eks_region }}"
+  register: create_cluster
+  when: check_cluster.json.data | length == 0
+
+
+- name: Check if {{ cluster_name }} eks cluster exists
+  uri:
+    url: "{{ rancher_endpoint }}/clusters?name={{ cluster_name }}"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_cluster
+
+- name: Set cluster id
+  set_fact:
+    cluster_id: "{{ check_cluster.json.data[0].id }}"
+  when: check_cluster.json.data | length != 0
+- debug:
+    msg: "{{ cluster_id }}"
+  when: check_cluster.json.data | length != 0

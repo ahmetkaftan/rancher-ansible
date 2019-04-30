@@ -1,0 +1,16 @@
+#########################################################
+###                  AWS CONFIG                       ###
+#########################################################
+aws_region: us-east-2
+aws_az: us-east-2a
+vpc_name: rancher-vpc
+vpc_subnet: 10.10.10.0/24
+vpc_cidr_block: 10.10.0.0/16
+image: ami-0c55b159cbfafe1f0
+instance_type: m4.large
+instance_name_tag: rancher
+
+#########################################################
+###                RANCHER CONFIG                     ###
+#########################################################
+rancher_tag: v2.2.2

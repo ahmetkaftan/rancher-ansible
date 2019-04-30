@@ -1,0 +1,8 @@
+#########################################################
+###                   AWS EKS CONFIG                  ###
+#########################################################
+eks_instancetype: t3.small
+eks_maximumnodes: 3
+eks_minimumnodes: 1
+eks_node_volume_size: 20
+eks_region: us-east-2

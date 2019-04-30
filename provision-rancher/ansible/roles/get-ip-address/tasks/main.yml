@@ -1,0 +1,15 @@
+---
+- name: Get instance public ip addresses
+  ec2_instance_facts:
+    aws_access_key: "{{ aws_accesskey }}"
+    aws_secret_key: "{{ aws_secretkey }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ instance_name_tag }}"
+  register: ec2
+
+- name: Save public ip address of rancher instance
+  add_host:
+    hostname: "{{ ec2.instances[0].public_ip_address }}"
+    groupname: rancher_instance_public_ip
+    ansible_ssh_private_key_file: "{{ provision_rancher.directory.artifacts }}/rancher-private-key.pem"

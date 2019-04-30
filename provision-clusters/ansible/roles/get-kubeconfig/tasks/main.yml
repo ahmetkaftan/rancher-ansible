@@ -1,0 +1,28 @@
+---
+- name: Wait untill worker nodes are ready
+  uri:
+    url: "{{ rancher_endpoint }}/clusters/{{ cluster_id }}?action=generateKubeconfig"
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: POST
+  register: get_kubeconfig
+
+#- debug:
+#    msg: "{{ get_kubeconfig | json_query('json.config') }}"
+#
+- name: Create directory for keys
+  file:
+    path: "{{ provision_clusters.directory.artifacts }}/{{ cluster_name }}/kubeconfig"
+    state: directory
+
+- copy:
+    content: "{{ get_kubeconfig | json_query('json.config') }}"
+    dest: "{{ provision_clusters.directory.artifacts }}/{{ cluster_name }}/kubeconfig/kubeconfig"

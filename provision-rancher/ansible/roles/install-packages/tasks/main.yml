@@ -1,0 +1,44 @@
+---
+- name: Make sure python is installed
+  raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+- name: Add Docker GPG key
+  apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+
+- name: Add Docker APT repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: Install list of packages
+  apt:
+    name: ['apt-transport-https','ca-certificates','curl','gnupg-agent','software-properties-common','python-pip','docker-ce','awscli']
+    state: present
+    update_cache: yes
+
+- name: Create directory for  ssl certificate and key
+  file:
+    path: /var/lib/docker/volumes/rancher-ssl
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy ssl certificate and key
+  copy:
+    src: "{{ provision_rancher.directory.configuration }}/ssl-certificates/{{ item }}"
+    dest: /var/lib/docker/volumes/rancher-ssl
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+  - certificate.crt
+  - private.key
+
+- name:
+  shell: |
+    cp /var/lib/docker/volumes/rancher-ssl/certificate.crt /var/lib/docker/volumes/rancher-ssl/cert.pem
+    openssl rsa -in /var/lib/docker/volumes/rancher-ssl/private.key -out /var/lib/docker/volumes/rancher-ssl/key.pem
+
+
+

@@ -1,0 +1,22 @@
+---
+- name: Install pip docker library
+  pip:
+    name:
+    - docker
+    - requests>=2.20.1
+    - botocore
+    - boto3
+
+- name: Create rancher container
+  docker_container:
+    name: rancher-aifora
+    image: rancher/rancher:{{ rancher_tag }}
+    restart_policy: unless-stopped
+    state: started
+    command: "--no-cacerts"
+    published_ports:
+    - 80:80
+    - 443:443
+    volumes:
+    - /var/lib/docker/volumes/rancher-ssl/cert.pem:/etc/rancher/ssl/cert.pem
+    - /var/lib/docker/volumes/rancher-ssl/key.pem:/etc/rancher/ssl/key.pem
