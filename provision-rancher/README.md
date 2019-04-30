@@ -10,20 +10,6 @@ This section is for provisioning an ec2 instance on AWS and deploying single nod
 ```sh
 ansible-playbook provision-rancher.yml
 ```
-2. Rancher will be at: rancher.$hosted_zone
-
-### Restore Rancher
-1. Copy the backup file in /tmp directory in ec2 instance.
-2. Update $restore_file variable in rancher_vars file.
-```sh
-ansible-playbook restore-rancher.yml
-```
-
-### Manual Rancher backup
-1. Following command creates a backup and uploads to S3.
-```sh
-ansible-playbook backup-rancher.yml
-```
 
 ### Upgrade/downgrade Rancher container image version
 1. Update rancher_tag variable in rancher_vars file.
