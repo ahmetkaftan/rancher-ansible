@@ -1,0 +1,14 @@
+---
+- name: Create projects and namespaces
+  hosts: localhost
+  gather_facts: False
+  tasks:
+  - name: Create missing projects
+    include_role:
+      name: create-projects-namespaces
+    with_items: "{{ projects }}"
+    loop_control:
+      loop_var: roleinputvar
+  vars_files:
+  - "{{ deploy_apps.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ deploy_apps.directory.credentials }}/credentials"

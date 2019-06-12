@@ -1,0 +1,85 @@
+---
+- name: Check if {{ cluster_name }} cluster exists
+  uri:
+    url: "{{ rancher_endpoint }}/clusters?name={{ cluster_name }}"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    method: GET
+  register: check_cluster
+
+- name: Set cluster_id for cluster {{ cluster_name }}
+  set_fact:
+    cluster_id: "{{ check_cluster.json.data[0].id }}"
+
+- name: Check if {{ roleinputvar }} project already exists
+  uri:
+    url: "{{ rancher_endpoint }}/cluster/{{ cluster_id }}/projects/?name={{ roleinputvar }}"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    method: GET
+  register: check_projects
+
+- name: Create {{ roleinputvar }} project
+  uri:
+    url: "{{ rancher_endpoint }}/projects"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 201
+    method: POST
+    body:
+      clusterId: "{{ cluster_id }}"
+      name: "{{ roleinputvar }}"
+      description: '{{ roleinputvar }} Project'
+  when: check_projects.json.data | length == 0
+
+- name: Check if {{ roleinputvar }} project already exists
+  uri:
+    url: "{{ rancher_endpoint }}/cluster/{{ cluster_id }}/projects/?name={{ roleinputvar }}"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    method: GET
+  register: check_projects
+
+- name: Set project_name for project {{ roleinputvar }}
+  set_fact:
+    project_name: "{{ check_projects.json.data[0].name }}"
+
+- name: Set project_id for project {{ roleinputvar }}
+  set_fact:
+    project_id: "{{ check_projects.json.data[0].id }}"
+
+- name: Create namespace {{ projects[project_name] }}
+  uri:
+    url: "{{ rancher_endpoint }}/cluster/{{cluster_id}}/namespaces"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 201
+    method: POST
+    body:
+      projectId: "{{ project_id }}"
+      name: "{{ item }}"
+      description: "{{ item }} Namespace"
+  register: create_ns
+  with_items: "{{ projects[project_name] }}"
+  failed_when:
+  - 'create_ns.json.type != "error"'
+  - 'create_ns.json.type != "namespace"'

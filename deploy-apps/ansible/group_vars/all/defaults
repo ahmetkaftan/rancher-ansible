@@ -1,0 +1,7 @@
+#########################################################
+###             ROOT DIRECTORY CONFIG                 ###
+#########################################################
+deploy_apps:
+ directory:
+  configuration: ../configuration
+  credentials: ../credentials
