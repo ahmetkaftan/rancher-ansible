@@ -40,7 +40,7 @@
     method: POST
     body:
       name: "nginx-ingress"
-      externalId: "catalog://?catalog=helm&template=nginx-ingress&version=1.6.9"
+      externalId: "catalog://?catalog=helm&template=nginx-ingress&version=1.6.17"
       namespaceId: "kube-system"
       targetNamespace: "kube-system"
   when: check_app.json.data | length == 0
