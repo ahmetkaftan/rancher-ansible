@@ -1,0 +1,46 @@
+---
+- name: Check if kube-system namespace exists
+  uri:
+    url: "{{ rancher_endpoint }}/cluster/{{cluster_id}}/namespaces?name=kube-system"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_namespace
+
+- name: Set project id
+  set_fact:
+    project_id: "{{ check_namespace.json.data[0].projectId }}"
+
+- name: Check if nginx-ingress app exists
+  uri:
+    url: "{{ rancher_endpoint }}/project/{{ project_id }}/apps?name=nginx-ingress"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_app
+
+- name: Create nginx-ingress app
+  uri:
+    url: "{{ rancher_endpoint }}/project/{{ project_id }}/apps"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 201
+    method: POST
+    body:
+      name: "nginx-ingress"
+      externalId: "catalog://?catalog=helm&template=nginx-ingress&version=1.6.9"
+      namespaceId: "kube-system"
+      targetNamespace: "kube-system"
+  when: check_app.json.data | length == 0
