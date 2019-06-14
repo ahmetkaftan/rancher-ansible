@@ -1,0 +1,87 @@
+---
+- name: Check if {{ chartmuseum_namespace }} namespace exists
+  uri:
+    url: "{{ rancher_endpoint }}/cluster/{{cluster_id}}/namespaces?name={{ chartmuseum_namespace }}"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_namespace
+
+- name: Set project id
+  set_fact:
+    project_id: "{{ check_namespace.json.data[0].projectId }}"
+
+- name: Check if {{ chartmuseum_app_name }}-pvc pvc exists
+  uri:
+    url: "{{ rancher_endpoint }}/project/{{ project_id }}/persistentVolumeClaims?name={{ chartmuseum_app_name }}-pvc"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_chartmuseum_pvc
+
+- name: Create {{ chartmuseum_app_name }}-pvc pvc
+  uri:
+    url: "{{ rancher_endpoint }}/project/{{ project_id }}/persistentVolumeClaims"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 201
+    method: POST
+    body:
+      name: "{{ chartmuseum_app_name }}-pvc"
+      resources:
+        requests:
+          storage: "8Gi"
+      accessModes:
+      - "ReadWriteOnce"
+      storageClassId: "{{ storageclass }}"
+      namespaceId: "{{ chartmuseum_namespace }}"
+  retries: 5
+  delay: 3
+  register: create_chartmuseum_pvc
+  until: create_chartmuseum_pvc.status == 201
+  when: check_chartmuseum_pvc.json.data | length == 0
+
+- name: Check if {{ chartmuseum_app_name }} app exists
+  uri:
+    url: "{{ rancher_endpoint }}/project/{{ project_id }}/apps?name={{ chartmuseum_app_name }}"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 200
+    method: GET
+  register: check_app
+
+- name: Create {{ chartmuseum_app_name }} app
+  uri:
+    url: "{{ rancher_endpoint }}/project/{{ project_id }}/apps"
+    return_content: "yes"
+    validate_certs: "no"
+    body_format: json
+    force_basic_auth: "yes"
+    user: "{{ rancher_username }}"
+    password: "{{ rancher_secret_key }}"
+    status_code: 201
+    method: POST
+    body:
+      name: "{{ chartmuseum_app_name }}"
+      answers:
+        persistence.enabled: "true"
+        persistence.existingClaim: "{{ chartmuseum_app_name }}-pvc"
+      externalId: "catalog://?catalog=helm&template=chartmuseum&version=2.3.1"
+      namespaceId: "{{ chartmuseum_namespace }}"
+      targetNamespace: "{{ chartmuseum_namespace }}"
+  when: check_app.json.data | length == 0

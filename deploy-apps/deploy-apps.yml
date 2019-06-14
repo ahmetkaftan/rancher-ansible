@@ -12,3 +12,24 @@
   vars_files:
   - "{{ deploy_apps.directory.configuration }}/{{ cluster_name }}/cluster_vars"
   - "{{ deploy_apps.directory.credentials }}/credentials"
+
+- name: Create nginx-ingress controller
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: create-app-nginx-ingress
+  vars_files:
+  - "{{ deploy_apps.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ deploy_apps.directory.credentials }}/credentials"
+
+- name: Create chartmuseum
+  hosts: localhost
+  gather_facts: True
+  roles:
+  - role: create-app-chartmuseum
+    when: chartmuseum_app_name is defined
+  vars_files:
+  - "{{ deploy_apps.directory.configuration }}/{{ cluster_name }}/cluster_vars"
+  - "{{ deploy_apps.directory.credentials }}/credentials"
+  vars:
+    storageclass: gp2
