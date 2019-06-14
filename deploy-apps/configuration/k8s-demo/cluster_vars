@@ -7,3 +7,11 @@ projects:
  project2:
   - namespace2
   - namespace3
+ chartmuseum
+  - chartmuseum
+
+#########################################################
+###              RANCHER APPS' CONFIGS                ###
+#########################################################
+chartmuseum_app_name: chartmuseum
+chartmuseum_namespace: chartmuseum
